@@ -1,16 +1,16 @@
-# Neon
+# Nightdrive
 
 A cyberpunk / synthwave Herdr window. It's black fading into deep violet, with hot magenta (`#ff2bd6`) and cyan (`#00f0ff`) as the only loud colors. Every corner is square. Section titles are in a small pixel font, and gradient rules run from magenta to cyan along the bar edges. Spaces and agents share the left sidebar. The work area has flat full-height tabs, panes framed in thin violet lines, and Files and Changes panels that can stack one above the other. A status bar runs along the bottom. Agents show their state as squares: working pulses, needs-you flashes, done is solid green, idle is hollow. That motion appears only in the sidebar and the status bar.
 
-![Neon](preview.png)
+![Nightdrive](preview.png)
 
 ## What you see
 
-All colors are theme names from `themes/neon.json`, with their hex values. The pixel font is Press Start 2P; everything else uses JetBrains Mono.
+All colors are theme names from `themes/nightdrive.json`, with their hex values. The pixel font is Press Start 2P; everything else uses JetBrains Mono.
 
 **Window:** no system title bar. The macOS traffic lights sit at 12,16. The background is a vertical gradient from `#000000` at the top to `#1a0533`. A 1px `#ff2bd666` divider separates the sidebar from the work area. Terminal padding is 14/12.
 
-**Theme `neon`:**
+**Theme `nightdrive`:**
 - **Terminals:** background `#05030a`, text `#ece6ff`, cursor `#ff2bd6`, selection `#3d1a6e`.
 - **ANSI colors:** `#0d0a17 #ff2a6d #05ffa1 #ffe14d #4d7cff #ff2bd6 #00f0ff #cfc6f2 #4b3f72 #ff5c8d #5cffc0 #fff27a #7f9cff #ff71ce #7df9ff #ffffff`.
 - **Panels:**
@@ -24,8 +24,8 @@ All colors are theme names from `themes/neon.json`, with their hex values. The p
 
 **Left sidebar** (268px wide, `chrome`), from top to bottom:
 - **Brand bar, 40px**, which drags the window:
-  - a 27×21 neon sun: a circle cut by four horizontal bands, cyan at the top fading to magenta at the bottom
-  - `NEON` in the pixel font at 10px, `foreground`, 9px from the sun
+  - a 27×21 sun: a circle cut by four horizontal bands, cyan at the top fading to magenta at the bottom
+  - `NIGHTDRIVE` in the pixel font at 8px, `foreground`, 9px from the sun. A custom `name` of up to 8 letters shows at 10px.
   - at the right, two 26px square buttons with a 15px search icon and sidebar icon, `muted` with an invisible border; on hover, `hover` background with an `accent` border and icon
   - the rule along its bottom
   - row padding 14 on the left and 10 on the right; on macOS out of fullscreen the left padding is 76, to clear the traffic lights
@@ -138,60 +138,60 @@ A done agent becomes idle once someone looks at it. A focused done agent stays i
 - **The column** hides when both slots are empty.
 - **Per space:** each space remembers its own panels, and switching spaces restores them. A space that never had panels opens with them closed.
 
-**Panes:** click a pane to focus it. The header's buttons split, zoom or close the pane. Right-clicking in a terminal opens the neon terminal menu: Split right, Split down, Zoom, where right-clicks go, and Close pane.
+**Panes:** click a pane to focus it. The header's buttons split, zoom or close the pane. Right-clicking in a terminal opens the Nightdrive terminal menu: Split right, Split down, Zoom, where right-clicks go, and Close pane.
 
 **Status bar:** checks the Claude Code status files every 10 seconds, and clicking `COMMANDS` opens the command palette.
 
 ## Built from
 
 **Files.** The folder is laid out like `~/.config/herdr-app`:
-- `layouts/neon.json` and `layouts/neon.svg` (the settings screen's picture of the layout)
-- `themes/neon.json`
+- `layouts/nightdrive.json` and `layouts/nightdrive.svg` (the settings screen's picture of the layout)
+- `themes/nightdrive.json`
 - 13 mods in `mods/`
 
-**Layout tree** (`layouts/neon.json`, cloned from Herdr's `main`). The root is a `row` with:
-- `"theme": "neon"`, `"ui_font": "JetBrains Mono"`, `"titlebar": "none"`, `"traffic_lights": [12, 16]`
-- `"terminal_padding": [14, 12]`, `"terminal_menu": "neon-menu"`, `"preview": "layouts/neon.svg"`
+**Layout tree** (`layouts/nightdrive.json`, cloned from Herdr's `main`). The root is a `row` with:
+- `"theme": "nightdrive"`, `"ui_font": "JetBrains Mono"`, `"titlebar": "none"`, `"traffic_lights": [12, 16]`
+- `"terminal_padding": [14, 12]`, `"terminal_menu": "nightdrive-menu"`, `"preview": "layouts/nightdrive.svg"`
 - `"background": {"gradient": ["#000000", "#1a0533"], "angle": 180}`, `"divider": {"width": 1, "color": "#ff2bd666"}`
 
 ```
 root (row)
 ├─ sidebar (column, 268px, min 44, max 480, background chrome, resizable false)
-│  ├─ brand (block, 40px, window_drag)          neon-chrome
+│  ├─ brand (block, 40px, window_drag)          nightdrive-chrome
 │  ├─ sidebar-lists (column)
-│  │  ├─ spaces (block, weight 1, min 90)       neon-spaces
-│  │  └─ agents (block, weight 1, min 90)       neon-agents
-│  └─ sidebar-footer (block, 69px)              neon-chrome {footer: true}
+│  │  ├─ spaces (block, weight 1, min 90)       nightdrive-spaces
+│  │  └─ agents (block, weight 1, min 90)       nightdrive-agents
+│  └─ sidebar-footer (block, 69px)              nightdrive-chrome {footer: true}
 └─ work (column, resizable false)
-   ├─ tabs (block, 40px, window_drag)           neon-tabs
+   ├─ tabs (block, 40px, window_drag)           nightdrive-tabs
    ├─ work-body (row, padding 0, gap 0)
    │  ├─ main (block)  {tab: "active", pane: {radius 0, gap 0, lone true, background "background",
    │  │                  border {1, border}, focus {1, accent},
-   │  │                  header {mod neon-pane, height 30, position top, reveal always}}}
+   │  │                  header {mod nightdrive-pane, height 30, position top, reveal always}}}
    │  └─ panel (column, 368px, min 280, max 900, hidden, divider {1, border})
-   │     ├─ panel-top (stack, active files): files neon-files, changes neon-changes
-   │     └─ panel-bottom (stack, active files-b, hidden): files-b neon-files, changes-b neon-changes
-   └─ status (block, 28px)                       neon-status
+   │     ├─ panel-top (stack, active files): files nightdrive-files, changes nightdrive-changes
+   │     └─ panel-bottom (stack, active files-b, hidden): files-b nightdrive-files, changes-b nightdrive-changes
+   └─ status (block, 28px)                       nightdrive-status
 ```
 
 **Mods.** All are clones of Herdr 0.1.14's own mods (`mod.clone`), restyled. Every `mod.json` has `"place": "none"`, so installing them docks nothing.
 
 | Mod | Cloned from | Role |
 |---|---|---|
-| `neon-chrome` | workspace-chrome | Brand bar, or the footer with `{footer: true}`. Props `name` and `mark` (an image path) replace `NEON` and the sun. Home of the shared parts: `neon.js`, 31 icons, `mark.svg`, `fonts/` |
-| `neon-spaces` | spaces | Spaces list and rail |
-| `neon-agents` | agents | Agents list, rail and its own sort menu (opened as itself with `{sortMenu: true}`) |
-| `neon-tabs` | tabs | Tab bar, the + menu opener and the two-slot panel buttons |
-| `neon-pane` | pane | Pane header |
-| `neon-status` | workspace-status | Status bar (rewritten) |
-| `neon-files`, `neon-changes` | files, changes | Panels |
-| `neon-menu` | menu | Terminal, tab and space menus. Its `mod.json` sets `"overlay": {"frame": "none"}`. |
-| `neon-new-menu` | new-menu | The + menu |
-| `neon-picker` | picker | Go-to picker (`mod.json` overlay: popup at top, offset 40, 640 wide, 0.8 high, frame none) |
-| `neon-worktree` | worktree | New, open and remove worktree dialogs |
-| `neon-machine-add` | machine-add | Add machine (dialog, 560 wide, frame none) |
+| `nightdrive-chrome` | workspace-chrome | Brand bar, or the footer with `{footer: true}`. Props `name` and `mark` (an image path) replace `NIGHTDRIVE` and the sun. Home of the shared parts: `nightdrive.js`, 31 icons, `mark.svg`, `fonts/` |
+| `nightdrive-spaces` | spaces | Spaces list and rail |
+| `nightdrive-agents` | agents | Agents list, rail and its own sort menu (opened as itself with `{sortMenu: true}`) |
+| `nightdrive-tabs` | tabs | Tab bar, the + menu opener and the two-slot panel buttons |
+| `nightdrive-pane` | pane | Pane header |
+| `nightdrive-status` | workspace-status | Status bar (rewritten) |
+| `nightdrive-files`, `nightdrive-changes` | files, changes | Panels |
+| `nightdrive-menu` | menu | Terminal, tab and space menus. Its `mod.json` sets `"overlay": {"frame": "none"}`. |
+| `nightdrive-new-menu` | new-menu | The + menu |
+| `nightdrive-picker` | picker | Go-to picker (`mod.json` overlay: popup at top, offset 40, 640 wide, 0.8 high, frame none) |
+| `nightdrive-worktree` | worktree | New, open and remove worktree dialogs |
+| `nightdrive-machine-add` | machine-add | Add machine (dialog, 560 wide, frame none) |
 
-**`neon.js`**, the shared look, is in `neon-chrome` and copied into each other mod. It provides:
+**`nightdrive.js`**, the shared look, is in `nightdrive-chrome` and copied into each other mod. It provides:
 - `DISPLAY` (the pixel font)
 - `MARK` (the six avatar colors)
 - `statusBlock(t, status, size, animated)`
@@ -207,7 +207,7 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 **Herdr functions:**
 - `spaces`, `agents`, `terminals`, `panes`, `focused`, `layout`, `theme`, `settings`, `keys`, `window`, `updates` and `machines`
 - `shared` and `setShared` with these keys: `space.colors`, `agents.sort`, `sidebar.width`, `sidebar.collapsed`, `new-menu.agents`, and `workspace.panels` (read only)
-- `localStorage`: `panels` in neon-tabs, the per-space `{top, bottom, web}`
+- `localStorage`: `panels` in nightdrive-tabs, the per-space `{top, bottom, web}`
 - `setAgentOrder`, `openOverlay`, `closeOverlay`, `watchFolder`, `readTextFile` and `knownAgents`
 - Commands:
   - spaces: `space.select`, `space.move`, `space.new`, `space.close`
@@ -230,15 +230,15 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 - `~/.ssh/config` and its Includes, in Add machine
 
 **Art:**
-- 40 angular 24×24 icons (31 in `neon-chrome`, 5 in `neon-pane`, 4 in `neon-files`): stroke 1.75, square caps, miter joins, `currentColor`. The tab bar's Windows window buttons are Herdr's originals.
+- 40 angular 24×24 icons (31 in `nightdrive-chrome`, 5 in `nightdrive-pane`, 4 in `nightdrive-files`): stroke 1.75, square caps, miter joins, `currentColor`. The tab bar's Windows window buttons are Herdr's originals.
 - `mark.svg`, the sun: a circle of radius 9.5 in a 27×21 box, with a vertical gradient from `#00f0ff` to `#ff2bd6`, clipped to bands at y 0–12.6, 13.8–16, 17.2–18.8 and 19.8–21
-- Press Start 2P (`mods/neon-chrome/fonts/`, SIL OFL)
-- `layouts/neon.svg`
+- Press Start 2P (`mods/nightdrive-chrome/fonts/`, SIL OFL)
+- `layouts/nightdrive.svg`
 
 ## Watch out
 
-- **Editing shipped mods:** Herdr restores its own mods on every start. Clone each one (`herdr-app do mod.clone '{"name":"tabs","as":"neon-tabs"}'`), then edit the clone, and point the layout and every `openOverlay` / `mod.open` at the clones' names.
-- **Shared helpers:** mods can't import from another mod's folder; `../neon-chrome/neon.js` fails with "resolves outside the application directory". Keep `neon.js` in `neon-chrome` and copy it into each mod after every change.
+- **Editing shipped mods:** Herdr restores its own mods on every start. Clone each one (`herdr-app do mod.clone '{"name":"tabs","as":"nightdrive-tabs"}'`), then edit the clone, and point the layout and every `openOverlay` / `mod.open` at the clones' names.
+- **Shared helpers:** mods can't import from another mod's folder; `../nightdrive-chrome/nightdrive.js` fails with "resolves outside the application directory". Keep `nightdrive.js` in `nightdrive-chrome` and copy it into each mod after every change.
 - **Gradients:** `.bg()` takes flat colors only, and `image()` keeps its aspect ratio. So the rule is 24 flat segments rather than a stretched gradient image. Gradients live only in the layout background and in SVGs.
 - **Herdr's own overlays:** they can't be restyled. Confirm, prompt, toast, help, peek and the command palette keep rounded corners.
   - Overlays the app opens by name need `"overlay": {"frame": "none"}` in their `mod.json`: the terminal menu through `terminal_menu`, and the picker and Add machine through `mod.open`.
@@ -248,14 +248,14 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 - **Panel ids:** the panel buttons find nodes by id: `panel`, `panel-top`, `panel-bottom`, `files`, `changes`, `files-b`, `changes-b`. Every panel needs a `-b` twin in the bottom stack.
   - `FILES` and `CHANGES` follow `shared("workspace.panels")`, which Herdr's welcome sets; without it, both show.
   - Nodes `posthog-staging` / `posthog-prod` (the PostHog Feed mod, with `-b` twins) or a `web` terminal block add `STAGING`, `PROD` or `WEB` buttons. This layout has none of them.
-- **Theme:** `themes/neon.json` is named like the layout, which makes it this layout's own theme: Settings offers it only here.
+- **Theme:** `themes/nightdrive.json` is named like the layout, which makes it this layout's own theme: Settings offers it only here.
 - **Font:** Herdr loads a mod's `fonts/` at start, so restart Herdr once after installing.
 - **Status bar files:** the cost and 5-hour window come from files something else writes: Claude Code's status line JSON saved as `{written_at, terminal, status}` under `~/.claude/state/statusline/<HC_TERMINAL_ID>.json`. Without those files the bar leaves them out.
   - It reads the files of every `claude-code` agent plus the focused terminal, local terminals only.
   - The cost is the focused terminal's; the 5-hour window comes from the newest file.
-- **Spaces order:** neon-spaces issues `space.move` itself to keep worktree spaces right under their repo's space.
+- **Spaces order:** nightdrive-spaces issues `space.move` itself to keep worktree spaces right under their repo's space.
 - **No upstream updates:** these are 0.1.14 clones and won't follow Herdr's later changes to its own mods.
-- **Leftovers:** `shared("sidebar.collapsed")` is written but nothing reads it. The menu's theme list (graphite, ink, moss, atom one dark) doesn't include neon.
+- **Leftovers:** `shared("sidebar.collapsed")` is written but nothing reads it. The menu's theme list (graphite, ink, moss, atom one dark) doesn't include nightdrive.
 - **Limits:**
   - sidebar 44–480px, rail below 160px
   - panel column 280–900px
@@ -264,8 +264,8 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 
 ## Done when
 
-- `herdr-app check` passes for all 13 mods, and `herdr-app do layout.switch --name neon` gives a `herdr-app status` with layout `neon` and no errors.
-- The window has no system title bar. It shows the black-to-violet background, the 268px sidebar with the sun and `NEON`, the 40px tab bar and the 28px status bar. All corners are square, and `// SPACES`, `// AGENTS` and `SYS` are in the pixel font.
+- `herdr-app check` passes for all 13 mods, and `herdr-app do layout.switch --name nightdrive` gives a `herdr-app status` with layout `nightdrive` and no errors.
+- The window has no system title bar. It shows the black-to-violet background, the 268px sidebar with the sun and `NIGHTDRIVE`, the 40px tab bar and the 28px status bar. All corners are square, and `// SPACES`, `// AGENTS` and `SYS` are in the pixel font.
 - In a terminal, `printf '\033]7501;state=working:app=claude-code\007'`:
   - pulses an 8px cyan square in the agents list and a 6px one in the status bar
   - shows a still square on its tab and pane header
