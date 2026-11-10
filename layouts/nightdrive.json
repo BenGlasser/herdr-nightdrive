@@ -126,7 +126,6 @@
                 {
                   "id": "panel-top",
                   "type": "stack",
-                  "active": "files",
                   "children": [
                     {
                       "id": "files",
@@ -141,14 +140,23 @@
                       "content": {
                         "mod": "nightdrive-changes"
                       }
+                    },
+                    {
+                      "id": "dash",
+                      "type": "block",
+                      "content": {
+                        "mod": "nightdrive-dash",
+                        "props": {
+                          "block": "dash"
+                        }
+                      }
                     }
-                  ]
+                  ],
+                  "active": "files"
                 },
                 {
                   "id": "panel-bottom",
                   "type": "stack",
-                  "active": "files-b",
-                  "hidden": true,
                   "children": [
                     {
                       "id": "files-b",
@@ -163,8 +171,20 @@
                       "content": {
                         "mod": "nightdrive-changes"
                       }
+                    },
+                    {
+                      "id": "dash-b",
+                      "type": "block",
+                      "content": {
+                        "mod": "nightdrive-dash",
+                        "props": {
+                          "block": "dash-b"
+                        }
+                      }
                     }
-                  ]
+                  ],
+                  "active": "files-b",
+                  "hidden": true
                 }
               ],
               "size": {
@@ -203,6 +223,8 @@
     ],
     "angle": 180
   },
+  "theme": "nightdrive",
+  "ui_font": "JetBrains Mono",
   "terminal_padding": [
     14,
     12
@@ -216,8 +238,6 @@
     12,
     16
   ],
-  "theme": "nightdrive",
-  "ui_font": "JetBrains Mono",
   "preview": "layouts/nightdrive.svg",
   "terminal_menu": "nightdrive-menu"
 }

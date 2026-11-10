@@ -151,6 +151,8 @@ export default class Tabs extends View {
       .child(button("tab-new", svg("mods/nightdrive-chrome/plus.svg").size(13), () => openOverlay({ mod: "nightdrive-new-menu", kind: "popup", frame: "none", width: 250, height: 512 })))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/nightdrive-files/file.svg")))
       .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/nightdrive-changes/changes.svg")))
+      // The usage dash (mods/nightdrive-dash), when the layout has it.
+      .when(Boolean(find(root, "dash")), el => el.child(panelButton("dash", "Dash", "mods/nightdrive-dash/gauge.svg", "Usage dash")))
       .children(posthog.filter(([id]) => find(root, id)).map(([id, label]) =>
         panelButton(id, label, "mods/posthog/activity.svg", `PostHog ${label.toLowerCase()} events`)))
       .when(Boolean(find(root, "web")), el => el.child(webButton()))

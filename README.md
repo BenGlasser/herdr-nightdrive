@@ -1,6 +1,13 @@
 # Nightdrive for Herdr
 
-A cyberpunk / synthwave layout for the [Herdr](https://herdr.dev) app: hot magenta and cyan on black, sharp corners everywhere, pixel-font section titles, and agent indicators that move. A working agent's square pulses and one that needs you flashes, in the sidebar and the status bar. Files and Changes can be open at once, one above the other. The status bar shows the focused Claude Code session's cost and when your 5-hour usage window resets.
+A cyberpunk / synthwave layout for the [Herdr](https://herdr.dev) app: hot magenta and cyan on black, sharp corners everywhere, pixel-font section titles, and agent indicators that move. A working agent's square pulses and one that needs you flashes, in the sidebar and the status bar. Two side panels can be open at once, one above the other: Files, Changes, or the Dash. The Dash shows your Claude Code usage as a car's instrument cluster:
+- dials for the 5-hour and 7-day windows, with a redline from 85%
+- a fuel gauge for the context window left, and a temperature gauge for the prompt cache
+- an odometer for the session's cost
+- a gear selector for the effort level
+- warning lamps
+
+The status bar shows the focused session's cost and when your 5-hour window resets.
 
 ![Nightdrive](preview.png)
 
@@ -32,15 +39,17 @@ Your own layouts aren't touched. Deleting the files removes Nightdrive.
   - `posthog-staging` and `posthog-prod`: [PostHog Feed](https://github.com/BenGlasser/herdr-posthog) panels, with a `-b` copy in the bottom stack
   - `web`: a terminal block beside the panels
 
-## Session cost and 5-hour window
+## Claude Code usage
 
-The status bar reads the JSON that Claude Code sends its status line, from `~/.claude/state/statusline/<terminal>.json`. One file per Herdr terminal, shaped like `{ "written_at": <unix seconds>, "terminal": "t3", "status": <the status-line JSON> }`. Nothing writes these files by default. Without them, the status bar simply leaves those numbers out.
+The Dash and the status bar read the JSON that Claude Code sends its status line, from `~/.claude/state/statusline/<terminal>.json`. One file per Herdr terminal, shaped like `{ "written_at": <unix seconds>, "terminal": "t3", "status": <the status-line JSON> }`. Nothing writes these files by default. Without them, the status bar leaves those numbers out and the Dash says it has no status yet.
+
+The Dash follows the focused terminal's session, or the one that reported last when the focused terminal isn't Claude Code. It reads the files every 10 seconds, only while it's open.
 
 To have them, make your Claude Code status line save its input there. For example, set `"statusLine": { "type": "command", "command": "sh ~/.claude/nightdrive-statusline.sh" }` in `~/.claude/settings.json`, with this as `~/.claude/nightdrive-statusline.sh`:
 
 ```sh
 #!/bin/sh
-# A Claude Code status line that also feeds the Nightdrive status bar.
+# A Claude Code status line that also feeds Nightdrive's status bar and Dash.
 input=$(cat)
 if [ -n "$HC_TERMINAL_ID" ]; then
   dir="$HOME/.claude/state/statusline"
@@ -60,7 +69,7 @@ echo "$input" | sed -n 's/.*"display_name":"\([^"]*\)".*/\1/p'
   - `hc machine`, for Add machine and reconnecting.
   - `open`, for the macOS Full Disk Access settings link in Add machine.
 - **Files outside its own folders:**
-  - `~/.claude/state/statusline/*.json`, for the status bar
+  - `~/.claude/state/statusline/*.json`, for the status bar and the Dash
   - `~/.ssh/config` and its Includes, for Add machine's host list
   - the files you preview in Files
 - **Network:** none of its own. Adding a machine connects over ssh through `hc`.
