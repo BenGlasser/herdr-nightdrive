@@ -74,4 +74,6 @@ echo "$input" | sed -n 's/.*"display_name":"\([^"]*\)".*/\1/p'
 
 [`RECIPE.md`](RECIPE.md) is the full brief: every region's size, color and behavior, how it's built, and checks that prove a build works. An agent can rebuild Neon from it in an empty folder.
 
-The pixel font is Press Start 2P, under the SIL Open Font License ([`mods/neon-chrome/fonts/OFL.txt`](mods/neon-chrome/fonts/OFL.txt)).
+## License
+
+[MIT](LICENSE), except the pixel font, Press Start 2P, which keeps its own SIL Open Font License ([`mods/neon-chrome/fonts/OFL.txt`](mods/neon-chrome/fonts/OFL.txt)).
