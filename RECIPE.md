@@ -78,15 +78,16 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
     - the diff of the selected file, with added lines on `#05ffa118` and removed lines on `#ff2a6d18`
     - a commit bar: a 32px message field and a `solid` **Commit** button
   - **Dash:** the session's usage as a car's instrument cluster, on `background` with a 1px `border` frame. Its header shows the session's name (else the terminal) at the right, 12px in `dim`. Below the header, a scrolling body with 12px gaps holds, from top to bottom:
-    - **Two round dials, side by side, like a speedometer and tachometer:** `5H` and `7D`, the 5-hour and 7-day usage windows.
-      - **Size:** each is (panel width − 30) / 2 wide, at most 240px (169px at 368). The face is a `#05030a` disc with a 1px `border` ring.
+    - **Gauge layout:** the two dials, then the two half gauges, reflow with the panel's width. From 690px wide (160px for each gauge) all four sit in one line. From 350px they sit two by two, the dials above. Below 350px they stack one under another. Each line is centered, with 10px between gauges and at the sides.
+    - **Two round dials, like a speedometer and tachometer:** `5H` and `7D`, the 5-hour and 7-day usage windows.
+      - **Size:** each takes its share of the line: (panel width − 10 × (gauges in the line + 1)) / gauges in the line, at most 240px. That's 169px at 368px wide, two to a line. The face is a `#05030a` disc with a 1px `border` ring.
       - **Sweep:** 270°, from the bottom left, clockwise, to the bottom right.
       - **Arcs:** a 5px `raised` track, with a `#ff2a6d55` redline zone from 85% to the end. Over them, a 5px value arc in a cyan-to-magenta gradient.
       - **Ticks and numerals:** 2px major ticks every 10% (`muted`, `blocked` in the redline zone) and 1px `dim` minor ticks between them. Numerals 0–10 in the pixel font at 8px; under 190px only the even ones show.
       - **Center:** the name in the pixel font at 8px in `solid`, above the hub. The needle is a 2.5px `solid` line over a 7px `#ff2bd633` glow, on a 7px `raised` hub with a 1.5px `accent` ring.
       - **Readout:** low on the face, between the sweep's ends: `37%` in the pixel font at 16px. It's `accent` below 60%, `#ffe14d` from 60% and `blocked` from 85%.
       - **Under the face,** 10px `muted`: the reset time and time left, `11:17 AM · 2H 17M` for 5H and `FRI 2:00 PM · 3D 5H` for 7D. Once the reset time passes it reads `WINDOW RESET` and the dial reads 0.
-    - **Two half gauges, like fuel and temperature:** each is as wide as a dial and 0.62 of that plus 14px tall, with a 180° arc across the top.
+    - **Two half gauges, like fuel and temperature:** each is as wide as a dial (at most 220px) and 0.62 of that plus 14px tall, with a 180° arc across the top. In a line of four they're centered on the dials' height.
       - **Arcs and ticks:** a 4px `raised` track and a 4px gradient value arc, with 2px `muted` ticks at the quarters.
       - **End letters,** in the pixel font at 8px.
       - **Needle:** 2px `solid` over a 6px glow, on a 5px hub.
@@ -173,7 +174,7 @@ A done agent becomes idle once someone looks at it. A focused done agent stays i
 - **Which session:** the focused terminal's. When that terminal has no status file, the dash shows the session that reported most recently. The 5-hour and 7-day windows belong to the account, so they come from whichever session reported them last.
 - **Updates:** it reads the status files every 10 seconds, but only while it shows, and catches up as soon as it's opened. A read redraws it only when something it shows has changed, so the countdowns move once a minute.
 - **Motion:** none. Needles move to their new value on the next read, and the lamps light without flashing; flashing stays in the sidebar and the status bar.
-- **Size:** the dials and gauges size themselves to the panel's width. When the slot is too short for everything (about 560px), the body scrolls.
+- **Size:** the gauges rearrange and resize as the panel is dragged: one line of four when it's wide, two by two in between, stacked when it's narrow. They jump to the new arrangement without animating. When the slot is too short for everything, the body scrolls; stacked, that's most of the time.
 
 ## Built from
 
@@ -329,6 +330,7 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 - Right-clicking a terminal, the `+` cell, and the brand bar's search all open framed menus: an `accent` border with magenta corner brackets.
 - With a status file for the focused Claude Code terminal, the status bar shows `SESSION $x.xx / 5H n% RESETS h:mm AM (xH yyM)`.
 - Clicking `DASH` opens the dash in the top slot with an `accent` marker, and ⌥-clicking it opens it below. Without status files, it shows the "No Claude Code status yet" message.
+- Dragging the panel from about 330px to 760px wide stacks the four gauges, then puts them two by two, then in one line.
 - With a status file whose `rate_limits.seven_day.used_percentage` is 87:
   - the 7D needle sits in the red zone, the readout `87%` is red and the `7D` lamp is lit
   - the 5H dial, the CTX and CACHE gauges, the odometer and the gear match the file's values

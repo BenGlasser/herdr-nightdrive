@@ -34,6 +34,8 @@ const span = (ms) => { const m = Math.floor(ms / 60000); return m >= 60 ? `${Mat
 const ttlSeconds = (ttl) => { const m = /^(\d+)([smh])$/.exec(ttl ?? ""); return m ? +m[1] * { s: 1, m: 60, h: 3600 }[m[2]] : 300; };
 const clamp = (v) => Math.max(0, Math.min(1, v));
 const commas = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+// A list cut into lines of `n`.
+const chunk = (list, n) => list.reduce((out, x, i) => (i % n ? out[out.length - 1].push(x) : out.push([x]), out), []);
 
 // ---- geometry: angles in degrees, clockwise from 3 o'clock (screen y points down) ----
 const rad = (deg) => (deg * Math.PI) / 180;
@@ -191,8 +193,12 @@ export default class Dash extends View {
     if (this.visible() && !this.wasShown) this.poll(cx); // catch up as soon as it's opened
     this.wasShown = this.visible();
     const { s, terminal, limits } = this.data();
-    const W = this.width, gap = 10;
-    const big = Math.min(240, Math.floor((W - gap * 3) / 2)), small = Math.min(220, Math.floor((W - gap * 3) / 2));
+    // The four gauges reflow with the panel's width: one line of four once each gets GAUGE px,
+    // two by two below that, and one under another when two side by side would be smaller.
+    const W = this.width, gap = 10, GAUGE = 160;
+    const cols = W >= 4 * GAUGE + 5 * gap ? 4 : W >= 2 * GAUGE + 3 * gap ? 2 : 1;
+    const fit = Math.floor((W - gap * (cols + 1)) / cols);
+    const big = Math.min(240, fit), small = Math.min(220, fit);
     const five = limits?.five_hour, week = limits?.seven_day;
     const pct = (w) => (w && w.resets_at * 1000 > Date.now() ? w.used_percentage / 100 : w ? 0 : null);
     const ctx = s?.context_window, pc = s?.prompt_cache;
@@ -224,6 +230,17 @@ export default class Dash extends View {
     const readout = (k, v, color) => h_flex().gap(6).items_center()
       .child(div().text_size(9.5).text_color(t.dim).child(k)).child(div().text_size(11).font_bold().text_color(color ?? t.foreground).child(v));
 
+    const gauges = [
+      this.dial(t, big, pct(five), "5H", five ? `${Math.round(pct(five) * 100)}%` : "--",
+        five ? (five.resets_at * 1000 > Date.now() ? `${clock(five.resets_at)} · ${left(five.resets_at)}` : "WINDOW RESET") : "NO DATA"),
+      this.dial(t, big, pct(week), "7D", week ? `${Math.round(pct(week) * 100)}%` : "--",
+        week ? (week.resets_at * 1000 > Date.now() ? `${day(week.resets_at)} ${clock(week.resets_at)} · ${left(week.resets_at)}` : "WINDOW RESET") : "NO DATA"),
+      this.meter(t, small, ctx ? (ctx.remaining_percentage ?? 0) / 100 : null, "CTX", "E", "F",
+        ctx ? `${ctx.remaining_percentage ?? 0}% LEFT` : "--", ctx ? `${tokens(usedTokens)} / ${tokens(ctx.context_window_size)}` : "", true),
+      this.meter(t, small, cacheLeft, "CACHE", "C", "H",
+        !pc ? "--" : pc.warm ? `WARM ${left(pc.expires_at)}` : "COLD", pc ? `HIT ${Math.round((pc.hit_ratio ?? 0) * 100)}%` : "", false),
+    ];
+
     const gear = h_flex().gap(3).items_center().children(EFFORT.map(([id, short]) =>
       div().h(22).px(6).flex().items_center().justify_center().text_size(10.5).font_bold()
         .when(id === effort, (e) => e.bg(t.accent).text_color(t.accent_foreground))
@@ -235,18 +252,9 @@ export default class Dash extends View {
       .on_size_change((size, cx) => { this.width = size.width; cx.notify(); })
       .child(header)
       .child(v_flex().id("dash-body").flex_1().min_h(0).overflow_y_scrollbar().py(12).gap(12)
-        // Speedo and tach: the 5-hour and 7-day windows.
-        .child(h_flex().px(gap).gap(gap).justify_center()
-          .child(this.dial(t, big, pct(five), "5H", five ? `${Math.round(pct(five) * 100)}%` : "--",
-            five ? (five.resets_at * 1000 > Date.now() ? `${clock(five.resets_at)} · ${left(five.resets_at)}` : "WINDOW RESET") : "NO DATA"))
-          .child(this.dial(t, big, pct(week), "7D", week ? `${Math.round(pct(week) * 100)}%` : "--",
-            week ? (week.resets_at * 1000 > Date.now() ? `${day(week.resets_at)} ${clock(week.resets_at)} · ${left(week.resets_at)}` : "WINDOW RESET") : "NO DATA")))
-        // Fuel and temperature: context left, and how long the prompt cache stays warm.
-        .child(h_flex().px(gap).gap(gap).justify_center()
-          .child(this.meter(t, small, ctx ? (ctx.remaining_percentage ?? 0) / 100 : null, "CTX", "E", "F",
-            ctx ? `${ctx.remaining_percentage ?? 0}% LEFT` : "--", ctx ? `${tokens(usedTokens)} / ${tokens(ctx.context_window_size)}` : "", true))
-          .child(this.meter(t, small, cacheLeft, "CACHE", "C", "H",
-            !pc ? "--" : pc.warm ? `WARM ${left(pc.expires_at)}` : "COLD", pc ? `HIT ${Math.round((pc.hit_ratio ?? 0) * 100)}%` : "", false)))
+        // The gauges, `cols` to a line: speedo and tach (the 5-hour and 7-day windows), then fuel
+        // and temperature (context left, and how long the prompt cache stays warm).
+        .children(chunk(gauges, cols).map((line) => h_flex().px(gap).gap(gap).justify_center().items_center().children(line)))
         // Odometer and trip meter.
         .child(v_flex().mx(gap).p(10).gap(8).bg(t.surface).border_1().border_color(t.border)
           .child(h_flex().gap(10).items_center().child(div().w(34).child(pix(8, t.dim, "ODO"))).child(div().text_color(t.dim).child("$")).child(odometer))
