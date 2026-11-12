@@ -124,73 +124,21 @@
               "type": "column",
               "children": [
                 {
-                  "id": "panel-top",
-                  "type": "stack",
-                  "children": [
-                    {
-                      "id": "files",
-                      "type": "block",
-                      "content": {
-                        "mod": "nightdrive-files"
-                      }
-                    },
-                    {
-                      "id": "changes",
-                      "type": "block",
-                      "content": {
-                        "mod": "nightdrive-changes"
-                      }
-                    },
-                    {
-                      "id": "dash",
-                      "type": "block",
-                      "content": {
-                        "mod": "nightdrive-dash",
-                        "props": {
-                          "block": "dash"
-                        }
-                      }
+                  "id": "dock",
+                  "type": "block",
+                  "content": {
+                    "mod": "nightdrive-dock",
+                    "props": {
+                      "block": "dock",
+                      "bar": false
                     }
-                  ],
-                  "active": "files"
-                },
-                {
-                  "id": "panel-bottom",
-                  "type": "stack",
-                  "children": [
-                    {
-                      "id": "files-b",
-                      "type": "block",
-                      "content": {
-                        "mod": "nightdrive-files"
-                      }
-                    },
-                    {
-                      "id": "changes-b",
-                      "type": "block",
-                      "content": {
-                        "mod": "nightdrive-changes"
-                      }
-                    },
-                    {
-                      "id": "dash-b",
-                      "type": "block",
-                      "content": {
-                        "mod": "nightdrive-dash",
-                        "props": {
-                          "block": "dash-b"
-                        }
-                      }
-                    }
-                  ],
-                  "active": "files-b",
-                  "hidden": true
+                  }
                 }
               ],
               "size": {
                 "px": 368
               },
-              "min": 280,
+              "min": 100,
               "max": 900,
               "hidden": true,
               "divider": {

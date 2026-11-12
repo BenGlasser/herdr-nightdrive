@@ -1,6 +1,6 @@
 # Nightdrive
 
-A cyberpunk / synthwave Herdr window. It's black fading into deep violet, with hot magenta (`#ff2bd6`) and cyan (`#00f0ff`) as the only loud colors. Every corner is square. Section titles are in a small pixel font, and gradient rules run from magenta to cyan along the bar edges. Spaces and agents share the left sidebar. The work area has flat full-height tabs and panes framed in thin violet lines. Its side panels can stack one above the other: Files, Changes, and a Dash that shows Claude Code's usage as a car's instrument cluster. A status bar runs along the bottom. Agents show their state as squares: working pulses, needs-you flashes, done is solid green, idle is hollow. That motion appears only in the sidebar and the status bar.
+A cyberpunk / synthwave Herdr window. It's black fading into deep violet, with hot magenta (`#ff2bd6`) and cyan (`#00f0ff`) as the only loud colors. Every corner is square. Section titles are in a small pixel font, and gradient rules run from magenta to cyan along the bar edges. Spaces and agents share the left sidebar. The work area has flat full-height tabs and panes framed in thin violet lines. Its side panels live in a dock you arrange by dragging their tabs: Files, Changes, a Dash that shows Claude Code's usage as a car's instrument cluster, the agent session's pull requests, and the ClickUp, Standup and PostHog panels. A status bar runs along the bottom. Agents show their state as squares: working pulses, needs-you flashes, done is solid green, idle is hollow. That motion appears only in the sidebar and the status bar. Each agent's icon is an outline like a lamp on a car's dash, lit in its platform's color while the agent works or needs you.
 
 ![Nightdrive](preview.png)
 
@@ -37,6 +37,7 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
     - a 4px square notch cut from the avatar's top-right corner
     - then the name, at most 120px
     - right-aligned at 11.5px in `dim`: `repo · branch`, plus `↑N` in `#05ffa1` and `↓N` in `#ff2a6d`. The branch is left out when it's main or master or matches the name.
+    - while hovered: a close × over the row's right end, on a `hover` (or `selected`) strip
   - **Active space:** `selected` background, a 2px `accent` bar on the left, and its name bold in `accent`.
   - **Worktrees:** a worktree space nests under its repo's main space at 28px, indented 22px, with a branch icon instead of an avatar.
   - **Machines:** with other machines connected, each machine's spaces sit under an uppercase machine header with a 6px square, `#05ffa1` when connected.
@@ -44,7 +45,7 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
   - **Header:** `// AGENTS` in the pixel font, with a 14px sort icon (a clock for priority, layers for grouped).
   - **Group labels** are uppercase 10.5px bold in their status color: `NEEDS YOU 1` in `blocked`, `DONE` in `done`, `WORKING` in `working`, `IDLE` in `dim`.
   - **Rows,** 30px each:
-    - the program's 16px icon
+    - the agent's 16px **lamp** (see Lamps below), else the program's icon
     - the space name, then `· tab name` in `dim`
     - at the right, the time since the last change in `dim` (`<1m`, `4m`, `2h`, `3d`), then the status
   - **Focused agent:** `selected` background with a 2px `accent` bar on the left.
@@ -53,12 +54,12 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
 
 **Work area:**
 - **Tab bar, 40px** (drags the window). It has the rule along its bottom.
-  - **Tabs:** flush, full-height cells with 14px padding and a 1px `border` line on their right. Each has the program's 14px icon and the tab's name, uppercase at 11.5px and at most 170px. Working, blocked and done tabs add a still 7px square.
+  - **Tabs:** flush, full-height cells with 14px padding and a 1px `border` line on their right. Each has its agent's 14px lamp (else the program's icon) and the tab's name, uppercase at 11.5px and at most 170px. Working, blocked and done tabs add a still 7px square. A tab with an agent has a 12px pull-request icon (`accent` while its PRs pane is open).
   - **Active tab:** `raised` background, bold `accent` text, a 2px `accent` bar along its top, and a 12px close ×.
   - **Others:** `chrome` with `muted` text.
-  - **Right side:** a 40px `+` cell, then the panel buttons `FILES`, `CHANGES` and `DASH`. Each button is a 14px icon plus an uppercase 10.5px label.
-    - **On:** `selected` background with `accent` text.
-    - **Markers:** a 2px `accent` bar on top means open in the top slot. A 2px `solid` bar along the bottom means open in the bottom slot.
+  - **Right side:** a 40px `+` cell, then one button per panel the dock holds, in its order: `FILES`, `CHANGES`, `DASH`, `PRS`, `CLICKUP`, `STANDUP`, `POSTHOG`. Each button is a 14px icon plus an uppercase 10.5px label.
+    - **On** (open in the dock): `selected` background with `accent` text.
+    - **Markers:** a 2px `accent` bar on top means it shows. A 2px `dim` bar along the bottom means it's open behind another tab.
 - **Panes:** the shown tab's panes sit flush (0 gap, square corners) on `background`. Each has a 1px `border` frame, or `accent` while focused. A lone pane is framed too.
   - **Pane header, 30px**, on every pane:
     - a 3px tick on the left
@@ -66,11 +67,16 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
     - the program's name, uppercase and bold, at most 260px
     - `//` in `solid`
     - the folder, with home shown as `~`, in `dim`
+    - for an agent's pane: a pull-request button (its PRs pane), and a ClickUp button when the pane names a ticket (a prefix ClickUp has seen, in its branch, folder, title, tab or space) or runs an agent
     - while hovered, 14px split-right, split-down, zoom and close buttons
   - **Focused pane:** `raised` header with an `accent` underline, an `accent` tick and an `accent` name.
   - **Other panes:** a `background` header with a `border` underline and a `solid` tick.
   - **Status:** working and done show a still 8px square; blocked shows a still `NEEDS YOU` tag.
-- **Panel column, 368px** (280–900px, hidden until a panel button opens it). It holds two slots, top and bottom, split by a 1px `border` line. Each slot shows Files, Changes or the Dash. Each panel has a 42px header with `//` and the title in the pixel font in `accent`.
+- **Panel column, 368px** (100–900px, hidden while no panel is open). It holds the **dock** (`nightdrive-dock`): Herdr's docking area with Nightdrive's chrome.
+  - **Tab strips, 28px**, `chrome`, a `border` line under: one cell per panel in a group (10px padding, a 13px icon and the uppercase label at 10.5px). The shown one is `raised`, bold `accent`, with a 2px `accent` bar on top; the others `muted`. No close ×.
+  - **Drop indicator:** while a tab is dragged, where it would land: `accent` at 15% with a 1px `accent` border.
+  - **Regions:** the middle splits freely; left, right and bottom regions have a 3px `border` edge (`accent` on hover) to drag their size by.
+  - Each panel keeps its own 42px header with `//` and the title in the pixel font in `accent`.
   - **Files:** the space's folder as a tree with 28px rows, indented 18px per level, with 14px folder and file icons. Git marks: `A` in `#05ffa1`; `M`, `D` and `U` in `#ff2a6d`. Clicking a file opens a read-only preview with syntax colors.
   - **Changes:**
     - a `N files` chip with `+N`/`−N` totals
@@ -78,7 +84,8 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
     - the diff of the selected file, with added lines on `#05ffa118` and removed lines on `#ff2a6d18`
     - a commit bar: a 32px message field and a `solid` **Commit** button
   - **Dash:** the session's usage as a car's instrument cluster, on `background` with a 1px `border` frame. Its header shows the session's name (else the terminal) at the right, 12px in `dim`. Below the header, a scrolling body with 12px gaps holds, from top to bottom:
-    - **Gauge layout:** the two dials, then the two half gauges, reflow with the panel's width. From 690px wide (160px for each gauge) all four sit in one line. From 350px they sit two by two, the dials above. Below 350px they stack one under another. Each line is centered, with 10px between gauges and at the sides.
+    - **Gauge layout:** the two dials, then the two half gauges, reflow with the panel's width. From 690px wide (160px for each gauge) all four sit in one line. From 350px they sit two by two, the dials above. Below 350px they stack one under another and shrink with the panel, down to 80px. Each line is centered, with 10px between gauges and at the sides.
+    - **Small gauges:** below 160px, ticks, hub and readout scale down; numerals go below 130px; under 120px a dial shows only its countdown (`2H 17M`) and a half gauge drops its end letters. Under 220px wide, the odometer reads `$3.42`, the trip readouts stack label over value, and the gear row wraps.
     - **Two round dials, like a speedometer and tachometer:** `5H` and `7D`, the 5-hour and 7-day usage windows.
       - **Size:** each takes its share of the line: (panel width − 10 × (gauges in the line + 1)) / gauges in the line, at most 240px. That's 169px at 368px wide, two to a line. The face is a `#05030a` disc with a 1px `border` ring.
       - **Sweep:** 270°, from the bottom left, clockwise, to the bottom right.
@@ -105,6 +112,9 @@ All colors are theme names from `themes/nightdrive.json`, with their hex values.
       - `NEEDS YOU n` lights in `blocked` while any agent is blocked.
     - **Labels** (`ODO`, `TRIP`, `GEAR`) are in the pixel font at 8px in `dim`. Missing values show `--`, and the odometer `----.--`.
     - **No status files:** the dash shows only its header and, at 12.5px in `muted`: "No Claude Code status yet. The dash reads ~/.claude/state/statusline/<terminal>.json, which a Claude Code status line writes for each Herdr terminal."
+  - **PRs** (`nightdrive-prs`): the pull requests the focused agent's session opened, from its Claude Code transcript (named in its status-line file), plus ones sharing their ticket id and links pasted at the bottom. Each row shows its checks as a strip. Clicking one opens its view (`nightdrive-pr`): checks, Overview (description, conversation, a comment box), Files (diffs) and Checks, with a merge bar that asks first. Through `gh`.
+  - **ClickUp, Standup, PostHog:** the `clickup`, `standup` and `posthog` mods, each in its own repo with its own recipe: [ClickUp](https://github.com/BenGlasser/herdr-clickup), [Standup](https://github.com/BenGlasser/herdr-standup), [PostHog](https://github.com/BenGlasser/herdr-posthog). In a Nightdrive layout their titles take the pixel face.
+- **Lamps:** an agent's icon, wherever Nightdrive shows it (agents list, tabs, pane headers), is its mark as an outline, `mods/nightdrive-chrome/lamps/<icon>.svg`, in its platform's lamp color: Claude `#ff8a3d`, Codex `#e8eeff`, Gemini `#4da3ff`, Amp `#ff4d3f`, Copilot `#c08cff`, Kiro `#a066ff`, Kimi `#3d9bff`, Crush `#ff6daa`, the generic agent `#00f0ff`, others their own or white. **Lit** (working, needs you, done): the outline in full color over a glow (the `-glow` file at `${color}52`) and a halo (the `-halo` file at `${color}29`). **Unlit** (idle): the outline alone at `${color}6b`. Each lamp file is padded 14% a side, so it's drawn 1.28× the icon's size and pulled back by 14%: the mark keeps the icon's size and place. Programs without a lamp keep their icon.
 - **Status bar, 28px**, `chrome`, with the rule on top. Text is uppercase 10.5px in `muted`, with segments separated by `/` in `border`:
   - a `SYS` chip: `solid` with black pixel text at 7.5px
   - the machine (`THIS COMPUTER`) with a 12px monitor icon in `solid`
@@ -160,11 +170,14 @@ A done agent becomes idle once someone looks at it. A focused done agent stays i
 - **Scroll the wheel** over the bar to step through the tabs.
 - **The `+` menu** starts a terminal or any installed agent. Keys 1–9 pick the first nine agents. It also makes a new space, a new worktree or opens one.
 
-**Panels:**
-- **Click** `FILES`, `CHANGES` or `DASH` to open that panel in the top slot; click it again to close it. **⌥-click** opens or closes it in the bottom slot instead.
-- **Picking another panel** for a slot replaces what's there. The same panel can be open in both slots.
-- **The column** hides when both slots are empty.
-- **Per space:** each space remembers its own panels, and switching spaces restores them. A space that never had panels opens with them closed.
+**Panels** (the dock):
+- **Click** a panel's tab-bar button to open it, where it was last (the middle the first time); click it while it shows to close it; one open behind another tab comes forward. **⌥-click** opens it at the bottom. **Right-click** gives a menu: Open on the left / in the middle / on the right / at the bottom (marking where it is now), and Close.
+- **Drag** a panel's tab onto another panel's edge to split beside it, onto a tab strip to stack it as a tab, or toward the dock's left, right or bottom edge to put it in that region. Drag the dividers and region edges to resize.
+- **Bringing a panel forward** from the tab bar (or the pane header's ClickUp button) rebuilds it, because Herdr's dock can't select a tab from code. Clicking its own tab in the dock keeps its state.
+- **Closing:** from its button or its menu; Herdr's dock doesn't let a tab close itself.
+- **Tidying:** a side region whose last panel leaves goes away; when the middle empties, the panels left in side regions move into it. A panel opened beside nothing goes in the middle.
+- **The column** hides when the dock is empty. The panels and their arrangement are the same in every space and survive restarts.
+- **Pane header buttons:** the pull-request button opens (or closes) the agent's PRs beside it. The ClickUp button opens ClickUp in the dock (at the bottom the first time) on that pane's ticket.
 
 **Panes:** click a pane to focus it. The header's buttons split, zoom or close the pane. Right-clicking in a terminal opens the Nightdrive terminal menu: Split right, Split down, Zoom, where right-clicks go, and Close pane.
 
@@ -174,14 +187,14 @@ A done agent becomes idle once someone looks at it. A focused done agent stays i
 - **Which session:** the focused terminal's. When that terminal has no status file, the dash shows the session that reported most recently. The 5-hour and 7-day windows belong to the account, so they come from whichever session reported them last.
 - **Updates:** it reads the status files every 10 seconds, but only while it shows, and catches up as soon as it's opened. A read redraws it only when something it shows has changed, so the countdowns move once a minute.
 - **Motion:** none. Needles move to their new value on the next read, and the lamps light without flashing; flashing stays in the sidebar and the status bar.
-- **Size:** the gauges rearrange and resize as the panel is dragged: one line of four when it's wide, two by two in between, stacked when it's narrow. They jump to the new arrangement without animating. When the slot is too short for everything, the body scrolls; stacked, that's most of the time.
+- **Size:** the gauges rearrange and resize as the panel is dragged: one line of four when it's wide, two by two in between, stacked when it's narrow, and stacked gauges shrink with the panel down to 80px. They jump to the new arrangement without animating. When the panel is too short for everything, the body scrolls.
 
 ## Built from
 
 **Files.** The folder is laid out like `~/.config/herdr-app`:
 - `layouts/nightdrive.json` and `layouts/nightdrive.svg` (the settings screen's picture of the layout)
 - `themes/nightdrive.json`
-- 14 mods in `mods/`
+- 20 mods in `mods/`
 
 **Layout tree** (`layouts/nightdrive.json`, cloned from Herdr's `main`). The root is a `row` with:
 - `"theme": "nightdrive"`, `"ui_font": "JetBrains Mono"`, `"titlebar": "none"`, `"traffic_lights": [12, 16]`
@@ -202,27 +215,27 @@ root (row)
    │  ├─ main (block)  {tab: "active", pane: {radius 0, gap 0, lone true, background "background",
    │  │                  border {1, border}, focus {1, accent},
    │  │                  header {mod nightdrive-pane, height 30, position top, reveal always}}}
-   │  └─ panel (column, 368px, min 280, max 900, hidden, divider {1, border})
-   │     ├─ panel-top (stack, active files): files nightdrive-files, changes nightdrive-changes,
-   │     │                                    dash nightdrive-dash {block: "dash"}
-   │     └─ panel-bottom (stack, active files-b, hidden): files-b nightdrive-files, changes-b nightdrive-changes,
-   │                                                      dash-b nightdrive-dash {block: "dash-b"}
+   │  └─ panel (column, 368px, min 100, max 900, hidden, divider {1, border})
+   │     └─ dock (block)                          nightdrive-dock {block: "dock", bar: false}
    └─ status (block, 28px)                       nightdrive-status
 ```
 
-**Mods.** All but `nightdrive-dash` are clones of Herdr 0.1.14's own mods (`mod.clone`), restyled. Every `mod.json` has `"place": "none"`, so installing them docks nothing.
+**Mods.** Most are clones of Herdr 0.1.14's own mods (`mod.clone`), restyled; the dash, dock, PR mods and the three panel apps are new. Every `mod.json` has `"place": "none"`, so installing them docks nothing on its own (the panel apps' own repos dock them on the right; here the dock holds them).
 
 | Mod | Cloned from | Role |
 |---|---|---|
 | `nightdrive-chrome` | workspace-chrome | Brand bar, or the footer with `{footer: true}`. Props `name` and `mark` (an image path) replace `NIGHTDRIVE` and the sun. Home of the shared parts: `nightdrive.js`, 31 icons, `mark.svg`, `fonts/` |
 | `nightdrive-spaces` | spaces | Spaces list and rail |
 | `nightdrive-agents` | agents | Agents list, rail and its own sort menu (opened as itself with `{sortMenu: true}`) |
-| `nightdrive-tabs` | tabs | Tab bar, the + menu opener and the two-slot panel buttons |
+| `nightdrive-tabs` | tabs | Tab bar, the + menu opener and the panel buttons. With a dock in the layout they talk to it; in a layout with `panel-top` / `panel-bottom` stacks instead, they open panels in those two slots (`panels.js`) |
 | `nightdrive-pane` | pane | Pane header |
 | `nightdrive-status` | workspace-status | Status bar (rewritten) |
 | `nightdrive-files`, `nightdrive-changes` | files, changes | Panels |
 | `nightdrive-dash` | (new) | The usage dash. Prop `block` is its own block id (`dash` or `dash-b`), so it can tell when it's hidden and stop reading. Its `mod.json` is `{"place": "none", "title": "Dash"}`. |
-| `nightdrive-menu` | menu | Terminal, tab and space menus. Its `mod.json` sets `"overlay": {"frame": "none"}`. |
+| `nightdrive-menu` | menu | Terminal, tab and space menus, and a panel button's menu (`{tab: "panel", target: {name}}`). Its `mod.json` sets `"overlay": {"frame": "none"}`. |
+| `nightdrive-dock` | (new) | The panel dock. Props: `block`; `bar: false` when the tab bar opens its panels (else it has a + PANEL bar and menu of its own); `panels`, which panels it offers (a kind, or `{name, kind, label, tip, props}`; default one of each kind). It imports each panel's code from `panels/<mod>/`, copied there by `sync.sh`, since mods can't import across folders. |
+| `nightdrive-prs`, `nightdrive-pr` | (new) | The PRs list (a dock panel, or a pane beside an agent) and one pull request's view |
+| `clickup`, `standup`, `posthog` | (new) | The panel apps; see their own repos |
 | `nightdrive-new-menu` | new-menu | The + menu |
 | `nightdrive-picker` | picker | Go-to picker (`mod.json` overlay: popup at top, offset 40, 640 wide, 0.8 high, frame none) |
 | `nightdrive-worktree` | worktree | New, open and remove worktree dialogs |
@@ -238,6 +251,9 @@ root (row)
 - `title(t, text)`
 - `notch(color, size, corner)`
 - `reticle(t, 12)`
+- `lamp(program, size, on)`, `LAMP`, `lit(status)`: the agent lamps
+- `dockBlock()`, `dockState()`, `dockRequest(op, name, where)`: talking to the dock
+- `PR_ICON`, `prsPane(tab)`, `agentPane(tab)`, `togglePrs(tab, pane)`: the PRs pane beside an agent
 
 Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).border_1().border_color(accent).children(reticle(t))`.
 
@@ -252,8 +268,8 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 
 **Herdr functions:**
 - `spaces`, `agents`, `terminals`, `panes`, `focused`, `layout`, `theme`, `settings`, `keys`, `window`, `updates`, `machines`, `props` and `home`
-- `shared` and `setShared` with these keys: `space.colors`, `agents.sort`, `sidebar.width`, `sidebar.collapsed`, `new-menu.agents`, and `workspace.panels` (read only)
-- `localStorage`: `panels` in nightdrive-tabs, the per-space `{top, bottom, web}`
+- `shared` and `setShared` with these keys: `space.colors`, `agents.sort`, `sidebar.width`, `sidebar.collapsed`, `new-menu.agents`, `workspace.panels` (read only); the dock's `dock` (`{open, shown, where, available}`), `dock.request` (`{id, op, name, where, at}`) and `dock.layout:<block>` (its arrangement); `clickup.open` and `clickup.prefixes` (the pane's ClickUp button); and the panel apps' own keys
+- `localStorage`: `panels` and `panels-everywhere` in nightdrive-tabs (the web column per space, and the two-slot panels in a layout without a dock)
 - `setAgentOrder`, `openOverlay`, `closeOverlay`, `watchFolder`, `readTextFile` and `knownAgents`
 - Commands:
   - spaces: `space.select`, `space.move`, `space.new`, `space.close`
@@ -269,6 +285,8 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 - `sh`, for folder listings and the Add machine checks.
 - `hc machine ls`, `hc machine add` and `hc machine rm`.
 - `open`, for the macOS Full Disk Access settings link in Add machine.
+- `gh`, for the PRs list and a pull request's view: GraphQL reads, and REST calls to comment, merge and delete a branch, only on their buttons.
+- `grep`, for `pr-link` records in an agent's transcript and its sub-agents'.
 - PowerShell on Windows only.
 
 **Files read outside the mods:**
@@ -280,6 +298,7 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 - `mark.svg`, the sun: a circle of radius 9.5 in a 27×21 box, with a vertical gradient from `#00f0ff` to `#ff2bd6`, clipped to bands at y 0–12.6, 13.8–16, 17.2–18.8 and 19.8–21
 - Press Start 2P (`mods/nightdrive-chrome/fonts/`, SIL OFL)
 - `layouts/nightdrive.svg`
+- the lamps (`mods/nightdrive-chrome/lamps/`): for each of 20 agents, `<icon>.svg`, `<icon>-glow.svg` and `<icon>-halo.svg`, made from Herdr's agent icons: every shape stroked in `currentColor` (no fill) at 6.5%, 15% and 27% of the icon's side, on a square viewBox padded 14% a side. Background plates are dropped (Codex, Kiro); Antigravity's mark comes from its mask path. Hermes has no lamp (too detailed for an outline). Their notice is `lamps/NOTICE.md`.
 
 ## Watch out
 
@@ -291,9 +310,15 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
   - Every `openOverlay` the mods make passes `frame: "none"`.
 - **Animation:** only the agents list, the spaces rail's blocked glyph and the status bar animate; tabs, pane headers, the picker and the dash stay still on purpose. Use `.loop("opacity", …)` and never a timer, because every redraw repaints the whole window.
 - **Window drag:** the brand bar and tab bar drag the window. Their buttons must stop the mouse-down (`cx.stop_propagation()`), or the drag eats the press.
-- **Panel ids:** the panel buttons find nodes by id: `panel`, `panel-top`, `panel-bottom`, `files`, `changes`, `dash`, `files-b`, `changes-b`, `dash-b`. Every panel needs a `-b` twin in the bottom stack.
-  - `FILES` and `CHANGES` follow `shared("workspace.panels")`, which Herdr's welcome sets; without it, both show. `DASH` shows whenever the layout has a `dash` node.
-  - Nodes `posthog-staging` / `posthog-prod` (the PostHog Feed mod, with `-b` twins) or a `web` terminal block add `STAGING`, `PROD` or `WEB` buttons. This layout has none of them.
+- **The dock:**
+  - Herdr's dock can't select a tab or hide a panel from code, and its groups aren't closable (`close_panel` does nothing). Bring a panel forward by taking it out and adding it back; close from outside the dock.
+  - Views can't be built during `render`: act on `dock.request` from a `cx.timer.after(1, …)`.
+  - Chrome elements only get presses with an `.id()`, and can't register handlers; they say what they do with the dock commands (`select_tab`, `drag_tab`, `drop_tab`, `resize_dock`).
+  - Keep the arrangement in shared state: a mod copy's own storage starts empty whenever its props change. Saved panel names carry the dock's props (`shell:<app>/<name>`); rename them to today's prefix before `load`.
+  - Panels: `cx.new(Class, props)`, with a subclass that adds `{block, dock: true}`, so a saved layout's rebuild gets them too. Each panel asks shared `dock`.`shown` whether it shows.
+  - Run `mods/nightdrive-dock/sync.sh` after changing a panel mod.
+- **Panel buttons:** `FILES` and `CHANGES` follow `shared("workspace.panels")`, which Herdr's welcome sets; without it, both show. With a dock, the buttons are the dock's `available` list; on a first start the tab bar shows the dock once so it can publish it.
+- **Lamps:** the lamp is picked by the program's icon file name (`icons/claude.svg` → `claude`), so a program whose icon you replaced keeps its icon.
 - **Theme:** `themes/nightdrive.json` is named like the layout, which makes it this layout's own theme: Settings offers it only here.
 - **Font:** Herdr loads a mod's `fonts/` at start, so restart Herdr once after installing.
 - **Status bar files:** the cost and 5-hour window come from files something else writes: Claude Code's status line JSON saved as `{written_at, terminal, status}` under `~/.claude/state/statusline/<HC_TERMINAL_ID>.json`. Without those files the bar leaves them out.
@@ -311,26 +336,30 @@ Every overlay is opened with `frame: "none"` and draws `.relative().bg(popover).
 - **Leftovers:** `shared("sidebar.collapsed")` is written but nothing reads it. The menu's theme list (graphite, ink, moss, atom one dark) doesn't include nightdrive.
 - **Limits:**
   - sidebar 44–480px, rail below 160px
-  - panel column 280–900px
+  - panel column 100–900px, gauges down to 80px
   - Files lists 500 entries per folder and 5,000 in all, and previews up to 400,000 characters
   - Changes shows up to 1,000 files and 1,500 diff lines
 
 ## Done when
 
-- `herdr-app check` passes for all 14 mods, and `herdr-app do layout.switch --name nightdrive` gives a `herdr-app status` with layout `nightdrive` and no errors.
+- `herdr-app check` passes for all 20 mods, and `herdr-app do layout.switch --name nightdrive` gives a `herdr-app status` with layout `nightdrive` and no errors.
 - The window has no system title bar. It shows the black-to-violet background, the 268px sidebar with the sun and `NIGHTDRIVE`, the 40px tab bar and the 28px status bar. All corners are square, and `// SPACES`, `// AGENTS` and `SYS` are in the pixel font.
 - In a terminal, `printf '\033]7501;state=working:app=claude-code\007'`:
   - pulses an 8px cyan square in the agents list and a 6px one in the status bar
   - shows a still square on its tab and pane header
 - `state=blocked` puts the agent under `NEEDS YOU` with a flashing red tag. The status bar's `1 NEEDS YOU` square flashes too, while the pane header's tag stays still.
 - `state=done` on an agent you aren't looking at gives a still green square under `DONE`. `state=idle` gives a hollow square under `IDLE`.
-- Clicking `FILES` opens Files on top with an `accent` marker. ⌥-clicking `CHANGES` opens Changes below with a magenta marker. Both show at once.
-- Switching to another space and back restores that space's panels.
+- Clicking `FILES` opens Files in the dock with an `accent` marker on its button; ⌥-clicking `CHANGES` opens Changes at the bottom. Both show at once.
+- Dragging Changes' tab onto Files' tab strip stacks them: Files' button gets a dim bottom marker. Dragging it to Files' right edge splits them side by side, with a drop indicator while dragging.
+- Right-clicking `DASH` and choosing "Open on the left" puts the Dash in a left region.
+- Closing every panel hides the column; after a restart, the dock comes back as it was left.
+- An agent working shows its lamp lit in the agents list, its tab and its pane header; idle, the lamp is a dim outline.
+- Hovering a space shows its close ×; clicking it closes the space without asking.
 - The sidebar button folds the sidebar to the rail and back. Spaces show as numbered cells, and a blocked space's dot flashes.
 - Right-clicking a terminal, the `+` cell, and the brand bar's search all open framed menus: an `accent` border with magenta corner brackets.
 - With a status file for the focused Claude Code terminal, the status bar shows `SESSION $x.xx / 5H n% RESETS h:mm AM (xH yyM)`.
-- Clicking `DASH` opens the dash in the top slot with an `accent` marker, and ⌥-clicking it opens it below. Without status files, it shows the "No Claude Code status yet" message.
-- Dragging the panel from about 330px to 760px wide stacks the four gauges, then puts them two by two, then in one line.
+- Clicking `DASH` opens the dash. Without status files, it shows the "No Claude Code status yet" message.
+- Dragging the panel from 100px to 760px wide: stacked 80px gauges that grow with the panel, then two by two from 350px, then one line from 690px.
 - With a status file whose `rate_limits.seven_day.used_percentage` is 87:
   - the 7D needle sits in the red zone, the readout `87%` is red and the `7D` lamp is lit
   - the 5H dial, the CTX and CACHE gauges, the odometer and the gear match the file's values

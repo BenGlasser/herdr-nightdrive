@@ -1,7 +1,7 @@
 // Workspace spaces: stable colored avatars, worktrees under their checkout,
 // grouped by machine when more than one is known. After a space's name, the repo
 // its first terminal is in now, only where unusual: branch, ahead/behind. Agent state lives in the agents list, not here. Click to
-// switch, right-click for its menu, drag to reorder.
+// switch, right-click for its menu, drag to reorder, hover for × to close.
 
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
@@ -61,6 +61,7 @@ export default class Spaces extends View {
     this.born = {};
     this.pressed = null;
     this.over = null;
+    this.hovered = null; // the space row under the pointer: it shows its close button
     this.machines = [];
     this.reconnecting = JSON.parse(localStorage.getItem("machines.reconnecting") ?? "{}");
     for (const state of Object.values(this.reconnecting)) state.busy = false;
@@ -422,6 +423,7 @@ export default class Spaces extends View {
         cx.notify();
       })
       .on_mouse_down("right", () => this.menu(w))
+      .on_hover((hovered, cx) => { this.hovered = hovered ? w.id : this.hovered === w.id ? null : this.hovered; cx.notify(); })
       .child(
         h_flex()
           .gap(9)
@@ -430,7 +432,17 @@ export default class Spaces extends View {
           .when(!tree, el => el.child(h_flex().relative().size(18).flex_none().border_1().border_color(fill).items_center().justify_center().text_size(10.5).font_bold().text_color(fill).child([...w.name][0]?.toUpperCase() ?? "?").child(notch(on ? t.selected : t.chrome, 4, "tr"))))
           .child(div().flex_shrink(0).max_w(120).truncate().text_color(on ? t.accent : t.foreground).when(on, (el) => el.font_bold()).child(w.name))
           .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
-      );
+      )
+      // Close, over the end of the row while it's hovered (not while dragging). It closes
+      // straight away, ending the space's terminals; the menu's Close still asks first.
+      .when(this.hovered === w.id && this.pressed === null, (el) => el.child(
+        h_flex().absolute().top(0).bottom(0).right(4).items_center().child(
+          div().id(`space-close-${w.id}`).p(3).bg(on ? t.selected : t.hover).text_color(t.dim)
+            .hover((s) => s.bg(t.raised).text_color(t.blocked))
+            .tooltip("Close space")
+            .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
+            .on_click((_e, cx) => { cx.stop_propagation(); this.hovered = null; run("space.close", { id: w.id, confirmed: true }); })
+            .child(svg("mods/nightdrive-pane/close.svg").size(13)))));
   }
 
   compact({ w, i }, t) {

@@ -1,7 +1,8 @@
 // Shared parts of the Nightdrive (cyberpunk/synthwave) look, imported by every nightdrive-* mod.
 // Colors come from themes/nightdrive.json through theme().
-import { div } from "gpui-kit";
+import { div, svg } from "gpui-kit";
 import { h_flex } from "gpui-base";
+import { layout, panes, run, setShared, shared, spaces } from "herdr";
 
 // Display face for section titles; bundled in ./fonts (SIL OFL).
 export const DISPLAY = "Press Start 2P";
@@ -50,6 +51,24 @@ export function notch(color, size = 5, corner = "tr") {
   return corner === "tr" ? n.top(0).right(0) : corner === "bl" ? n.bottom(0).left(0) : corner === "tl" ? n.top(0).left(0) : n.bottom(0).right(0);
 }
 
+// The pull requests list (mods/nightdrive-prs), opened beside an agent from its pane header, the
+// tab bar, or a right-click menu. A tab has at most one; the same control closes it.
+export const PR_ICON = "mods/nightdrive-pane/pull-request.svg";
+// The list, or a review opened beside the agent in its place (mods/nightdrive-pr).
+export const prsPane = (tabId) => panes().find((p) => p.tab === tabId && (p.mod === "nightdrive-prs" || p.mod === "nightdrive-pr")) ?? null;
+// A tab's first agent pane (a terminal whose program reports a status).
+export const agentPane = (tabId) => panes().find((p) => p.tab === tabId && p.terminal && (p.program?.agent || p.app)) ?? null;
+// Opens the list beside `pane` (default: the tab's first agent), showing that tab; or closes it.
+export function togglePrs(tabId, pane = agentPane(tabId)) {
+  const open = prsPane(tabId);
+  if (open) { run("pane.close", { pane: open.pane }); return; }
+  if (!pane?.terminal) return;
+  const space = spaces().find((s) => s.tabs.some((c) => c.id === tabId));
+  if (space && !space.active) run("space.select", { id: space.id });
+  if (space && !space.tabs.find((c) => c.id === tabId)?.active) run("tab.select", { id: tabId });
+  run("pane.split", { direction: "right", pane: pane.pane, mod: "nightdrive-prs", props: { terminal: pane.terminal, agent: pane.pane } });
+}
+
 // An overlay's frame, drawn by the mod itself (opened with frame: "none"):
 // a cyan border with magenta L-brackets at top-left and bottom-right, like a
 // targeting reticle. Spread onto the overlay's root, which must be .relative().
@@ -61,4 +80,52 @@ export function reticle(t, size = 12) {
     div().absolute().bottom(0).right(0).w(size).h(2).bg(c),
     div().absolute().bottom(0).right(0).w(2).h(size).bg(c),
   ];
+}
+
+// An agent's icon as a dash warning lamp: its mark as an outline (lamps/<icon>.svg, made from the
+// app's icons) in the platform's own lamp color, lit with a glow while the agent is working or needs
+// you, and unlit (dim, no glow) while it's idle. Null for programs without a lamp: draw their icon.
+export const LAMP = {
+  claude: "#ff8a3d", codex: "#e8eeff", gemini: "#4da3ff", cursor: "#e8e8f0", opencode: "#f0f0f0", amp: "#ff4d3f",
+  copilot: "#c08cff", agent: "#00f0ff", kiro: "#a066ff", grok: "#f0f0f0", kimi: "#3d9bff", crush: "#ff6daa", pi: "#f0f0f0",
+  "command-code": "#ffd84d", qoder: "#2fe07a", antigravity: "#4da3ff", mastracode: "#f0f0f0", muse: "#2f8cff",
+  "prime-agent": "#05ffa1", ollama: "#f0f0f0",
+};
+export const lit = (status) => status === "working" || status === "blocked" || status === "done";
+export function lamp(program, size, on = true) {
+  const key = /([^/]+)\.svg$/.exec(program?.icon ?? "")?.[1];
+  const color = key ? LAMP[key] : null;
+  if (!color) return null;
+  // The lamp files are padded by 14% a side for the glow, so they're drawn that much bigger and
+  // pulled back by it: the mark itself keeps the icon's size and place.
+  const big = size * 1.28, d = size * 0.14, base = `mods/nightdrive-chrome/lamps/${key}`;
+  const layer = (suffix, c) => div().absolute().left(-d).top(-d).size(big).child(svg(`${base}${suffix}.svg`).size(big).text_color(c));
+  return div().relative().size(size).flex_none()
+    .when(on, (el) => el.child(layer("-halo", `${color}29`)).child(layer("-glow", `${color}52`)))
+    .child(layer("", on ? color : `${color}6b`));
+}
+
+// ---- the panel dock (mods/nightdrive-dock) -----------------------------------------------------
+// When a layout holds the dock, the side panels live in it: tabs you drag to split, stack or dock
+// them. Mods ask it to open or close a panel through shared "dock.request", and read what it shows
+// from shared "dock": { open, shown, where, available } (panel names; where: name → region).
+export const DOCK_MOD = "nightdrive-dock";
+const findIn = (node, test, path = []) => {
+  if (!node) return null;
+  if (test(node)) return [...path, node];
+  for (const c of node.children ?? []) { const hit = findIn(c, test, [...path, node]); if (hit) return hit; }
+  return null;
+};
+// The dock's block in the layout, or null when this layout has none.
+export const dockBlock = (root = layout()) => findIn(root, (n) => n.content?.mod === DOCK_MOD)?.pop() ?? null;
+export const dockState = () => shared("dock") ?? { open: [], shown: [], where: {}, available: [] };
+// op: "open" (show it: where it was last, or `where`), "close", or "toggle" (close it if it's
+// showing, else open it). where: "left" | "center" | "right" | "bottom".
+export function dockRequest(op, name, where = null) {
+  const path = findIn(layout(), (n) => n.content?.mod === DOCK_MOD);
+  if (!path) return false;
+  // The dock reads requests as it draws, so everything around it shows first.
+  if (op !== "close") for (const n of path) if (n.hidden && n.id) run("layout.show", { id: n.id });
+  setShared("dock.request", { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, op, name, where, at: Date.now() });
+  return true;
 }

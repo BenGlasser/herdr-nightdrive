@@ -1,11 +1,14 @@
 # Nightdrive for Herdr
 
-A cyberpunk / synthwave layout for the [Herdr](https://herdr.dev) app: hot magenta and cyan on black, sharp corners everywhere, pixel-font section titles, and agent indicators that move. A working agent's square pulses and one that needs you flashes, in the sidebar and the status bar. Two side panels can be open at once, one above the other: Files, Changes, or the Dash. The Dash shows your Claude Code usage as a car's instrument cluster:
-- dials for the 5-hour and 7-day windows, with a redline from 85%
-- a fuel gauge for the context window left, and a temperature gauge for the prompt cache
-- an odometer for the session's cost
-- a gear selector for the effort level
-- warning lamps
+A cyberpunk / synthwave layout for the [Herdr](https://herdr.dev) app: hot magenta and cyan on black, sharp corners everywhere, pixel-font section titles, and agent indicators that move. A working agent's square pulses and one that needs you flashes, in the sidebar and the status bar. Each agent's icon is an outline lit like a lamp on a car's dash: in its platform's color while it works or needs you, dim while it's idle.
+
+The side panels live in a dock you arrange by dragging their tabs: split them side by side or one above another, stack them as tabs, or put them in a region on the left, right or bottom. The tab bar opens and closes them. The panels:
+- **Files** and **Changes** for the space's folder
+- **Dash:** your Claude Code usage as a car's instrument cluster: dials for the 5-hour and 7-day windows with a redline from 85%, fuel and temperature gauges for the context window and the prompt cache, an odometer for the session's cost, a gear selector for the effort level, and warning lamps
+- **PRs:** the pull requests the focused agent's session opened, with their checks; open one for its description, conversation, files and checks, and to merge it
+- **[ClickUp](https://github.com/BenGlasser/herdr-clickup):** your tasks by status, with AI and START buttons that open a space for a task
+- **[Standup](https://github.com/BenGlasser/herdr-standup):** your daily standup from your repos and trackers
+- **[PostHog](https://github.com/BenGlasser/herdr-posthog):** one project's events, live
 
 The status bar shows the focused session's cost and when your 5-hour window resets.
 
@@ -23,7 +26,7 @@ Or do it by hand:
    - `layouts/nightdrive.json` and `layouts/nightdrive.svg` into `layouts/`
    - `themes/nightdrive.json` into `themes/`
    - every folder in `mods/` into `mods/`
-2. Check each mod: `for m in ~/.config/herdr-app/mods/nightdrive-*; do herdr-app check "$m"; done`
+2. Check each mod: `for m in ~/.config/herdr-app/mods/{nightdrive-*,clickup,standup,posthog}; do herdr-app check "$m"; done`
 3. Switch to it with `herdr-app do layout.switch --name nightdrive`; `ctrl-shift-l` cycles back to your previous layout.
 4. Restart Herdr once so it loads the bundled pixel font (Press Start 2P).
 
@@ -35,15 +38,16 @@ Your own layouts aren't touched. Deleting the files removes Nightdrive.
   `"content": { "mod": "nightdrive-chrome", "props": { "name": "Acme", "mark": "mods/nightdrive-chrome/acme.svg" } }`.
   The mark is any image under `~/.config/herdr-app`, drawn in a 27×21 box.
 - **Colors:** everything comes from `themes/nightdrive.json`, so changing a color there changes it everywhere.
-- **More panels:** the tab bar adds buttons for these blocks when the layout has them:
-  - `posthog-staging` and `posthog-prod`: [PostHog Feed](https://github.com/BenGlasser/herdr-posthog) panels, with a `-b` copy in the bottom stack
-  - `web`: a terminal block beside the panels
+- **Which panels:** the `dock` block's `panels` prop lists them, in the tab bar's order. Each is a kind (`files`, `changes`, `dash`, `prs`, `clickup`, `standup`, `posthog`), or an object for one with props of its own, or two of one kind:
+  `"panels": ["files", "changes", "dash", { "name": "posthog-prod", "kind": "posthog", "label": "Prod", "props": { "project": 12345, "prod": true } }]`
+- **The dock elsewhere:** in a layout without Nightdrive's tab bar, give the `nightdrive-dock` block no `bar` prop: it gets a bar of its own with **+ PANEL** to add, place and close panels.
+- **A web column:** a `web` terminal block beside the panels adds a `WEB` button.
 
 ## Claude Code usage
 
 The Dash and the status bar read the JSON that Claude Code sends its status line, from `~/.claude/state/statusline/<terminal>.json`. One file per Herdr terminal, shaped like `{ "written_at": <unix seconds>, "terminal": "t3", "status": <the status-line JSON> }`. Nothing writes these files by default. Without them, the status bar leaves those numbers out and the Dash says it has no status yet.
 
-The Dash follows the focused terminal's session, or the one that reported last when the focused terminal isn't Claude Code. It reads the files every 10 seconds, only while it's open.
+The Dash follows the focused terminal's session, or the one that reported last when the focused terminal isn't Claude Code. It reads the files every 10 seconds, only while it's open. The PRs panel uses them too: the status line names the session's transcript, where Claude Code records each pull request the session opens.
 
 To have them, make your Claude Code status line save its input there. For example, set `"statusLine": { "type": "command", "command": "sh ~/.claude/nightdrive-statusline.sh" }` in `~/.claude/settings.json`, with this as `~/.claude/nightdrive-statusline.sh`:
 
@@ -65,6 +69,7 @@ echo "$input" | sed -n 's/.*"display_name":"\([^"]*\)".*/\1/p'
 
 - **Programs:**
   - `git`, for branches, Files' marks and the Changes list. The Changes panel's **Commit** button runs `git add -A` and `git commit`. The worktree dialogs run `git worktree add` and `git worktree remove`.
+  - `gh`, for the PRs panel and a pull request's view (reads through its GraphQL API). Commenting, merging and deleting the branch go through `gh` only when you press those buttons.
   - `sh`, for folder listings and Add machine's checks.
   - `hc machine`, for Add machine and reconnecting.
   - `open`, for the macOS Full Disk Access settings link in Add machine.
@@ -72,7 +77,8 @@ echo "$input" | sed -n 's/.*"display_name":"\([^"]*\)".*/\1/p'
   - `~/.claude/state/statusline/*.json`, for the status bar and the Dash
   - `~/.ssh/config` and its Includes, for Add machine's host list
   - the files you preview in Files
-- **Network:** none of its own. Adding a machine connects over ssh through `hc`.
+  - an agent's Claude Code transcript (`~/.claude/projects/…`), where the PRs panel finds the pull requests it opened
+- **Network:** the layout itself, none. Adding a machine connects over ssh through `hc`. The ClickUp, Standup and PostHog panels reach their services when you turn them on; each one's own README says how: [ClickUp](https://github.com/BenGlasser/herdr-clickup), [Standup](https://github.com/BenGlasser/herdr-standup), [PostHog](https://github.com/BenGlasser/herdr-posthog).
 
 ## Limits
 
@@ -85,4 +91,6 @@ echo "$input" | sed -n 's/.*"display_name":"\([^"]*\)".*/\1/p'
 
 ## License
 
-[MIT](LICENSE), except the pixel font, Press Start 2P, which keeps its own SIL Open Font License ([`mods/nightdrive-chrome/fonts/OFL.txt`](mods/nightdrive-chrome/fonts/OFL.txt)).
+[MIT](LICENSE), except:
+- the pixel font, Press Start 2P, which keeps its own SIL Open Font License ([`mods/nightdrive-chrome/fonts/OFL.txt`](mods/nightdrive-chrome/fonts/OFL.txt))
+- the agent lamps, outlines made from the agent icons Herdr ships: LobeHub icons (MIT) and the agents' own marks, which are their owners' trademarks ([`mods/nightdrive-chrome/lamps/NOTICE.md`](mods/nightdrive-chrome/lamps/NOTICE.md))

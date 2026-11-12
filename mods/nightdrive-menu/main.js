@@ -1,12 +1,19 @@
 // Context menus (Herdr's items). Opened as a popup with
-// props { tab: "pane" | "tab" | "space" | "global", target }.
+// props { tab: "pane" | "tab" | "space" | "panel" | "global", target }.
+// "panel": where to open a side panel in the panel dock (target { name }).
 // ↑/↓ move, Enter runs, Esc closes. An item is [label, command, args];
 // a command "worktree" opens the worktree dialog instead.
 
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { run, props, closeOverlay, openOverlay, theme, keys, terminals, spaces, panes, exec } from "herdr";
-import { reticle } from "./nightdrive.js";
+import { reticle, togglePrs, prsPane, agentPane, PR_ICON, dockState, dockRequest } from "./nightdrive.js";
+
+// The pull requests item ("prs": togglePrs) for a tab, beside one agent pane or the tab's first.
+function prsItem(tabId, pane) {
+  if (!tabId || !(pane ?? agentPane(tabId))) return [];
+  return [[prsPane(tabId) ? "Close pull requests" : "Pull requests", "prs", { tab: tabId, pane: pane?.pane ?? null }]];
+}
 
 // Where a space is now: its first terminal's live folder, else where it was made.
 function place(s) {
@@ -36,6 +43,9 @@ function items(p, git) {
       // A terminal shown outside a tab (a layout terminal block, a window) has
       // no pane to split, zoom or close: its pane is the block's id.
       const inTab = panes().some((pane) => pane.pane === tg.pane);
+      // An agent's terminal: its session's pull requests beside it.
+      const pane = panes().find((x) => x.pane === tg.pane);
+      const agent = pane?.terminal && (pane.program?.agent || pane.app) ? pane : null;
       return [
         ...(inTab
           ? [
@@ -44,6 +54,7 @@ function items(p, git) {
               ["Zoom", "pane.zoom", { pane: tg.pane }],
             ]
           : []),
+        ...(agent ? prsItem(agent.tab, agent) : []),
         ...(term
           ? [
               toProgram
@@ -59,8 +70,21 @@ function items(p, git) {
       return [
         ["Rename", "tab.rename", { id: tg.id }],
         ["New tab", "tab.new", { space: tg.space }],
+        ...prsItem(tg.id),
         ["Close", "tab.close", { id: tg.id }],
       ];
+    case "panel": {
+      // A side panel in the dock: which region to open it in (moving it there if it's open), or close it.
+      const ds = dockState(), open = ds.open.includes(tg.name), here = open ? ds.where?.[tg.name] : null;
+      const at = (where, label) => [`${label}${here === where ? " (here now)" : ""}`, "dock", { name: tg.name, where }];
+      return [
+        at("left", "Open on the left"),
+        at("center", "Open in the middle"),
+        at("right", "Open on the right"),
+        at("bottom", "Open at the bottom"),
+        ...(open ? [["Close", "dock", { name: tg.name, op: "close" }]] : []),
+      ];
+    }
     case "space":
       return [
         ["Rename", "space.rename", { id: tg.id }],
@@ -80,7 +104,12 @@ function items(p, git) {
   }
 }
 
-function menuIcon(command) {
+function menuIcon(command, args) {
+  if (command === "prs") return PR_ICON;
+  if (command === "dock") {
+    const name = args?.op === "close" ? "x" : { left: "panel-left", right: "panel-right", bottom: "panel-bottom" }[args?.where] ?? "square";
+    return `mods/nightdrive-chrome/${name}.svg`;
+  }
   const name = command.endsWith(".close") ? "x" : command.endsWith(".rename") ? "square-pen" : command.endsWith(".new") ? "plus" : command === "worktree" ? "git-branch" : command === "app.help" ? "terminal" : command === "app.theme" ? "settings" : command === "pane.split" ? "panel-right" : command === "pane.zoom" ? "square" : "terminal";
   return `mods/nightdrive-chrome/${name}.svg`;
 }
@@ -113,7 +142,9 @@ export default class Menu extends View {
     const it = items(props(), this.git)[i];
     if (!it) return;
     closeOverlay(props()?.overlay);
-    if (it[1] === "worktree") openOverlay({ mod: "nightdrive-worktree", kind: "dialog", frame: "none", ...(it[2].action === "open" ? { width: 560, height: 480 } : { width: 440, height: 260 }), props: it[2] });
+    if (it[1] === "dock") dockRequest(it[2].op ?? "open", it[2].name, it[2].where ?? null);
+    else if (it[1] === "prs") togglePrs(it[2].tab, it[2].pane ? panes().find((x) => x.pane === it[2].pane) : undefined);
+    else if (it[1] === "worktree") openOverlay({ mod: "nightdrive-worktree", kind: "dialog", frame: "none", ...(it[2].action === "open" ? { width: 560, height: 480 } : { width: 440, height: 260 }), props: it[2] });
     else run(it[1], it[2]);
   }
 
@@ -139,7 +170,7 @@ export default class Menu extends View {
       .children(
         list.map((it, i) =>
           v_flex()
-            .when(i > 0 && (it[1].endsWith(".close") || it[1] === "app.help" || (it[1] === "app.theme" && list[i - 1][1] !== "app.theme")), el => el.child(div().mx(7).my(4).h(1).bg(t.border)))
+            .when(i > 0 && (it[1].endsWith(".close") || it[2]?.op === "close" || it[1] === "app.help" || (it[1] === "app.theme" && list[i - 1][1] !== "app.theme")), el => el.child(div().mx(7).my(4).h(1).bg(t.border)))
             .child(h_flex()
             .id(`mi-${i}`)
             .h(31)
@@ -151,7 +182,7 @@ export default class Menu extends View {
             .when(i === this.at, (el) => el.bg(t.selected))
             .hover((s) => s.bg(t.hover))
             .on_click((_e, cx) => this.choose(i, cx))
-            .child(svg(menuIcon(it[1])).size(14).flex_none().text_color(t.muted))
+            .child(svg(menuIcon(it[1], it[2])).size(14).flex_none().text_color(t.muted))
             .child(div().flex_1().child(it[0]))
             .child(div().text_size(11).text_color(t.dim).child(shortcut(it[1], it[2])))),
         ),
